@@ -1,7 +1,7 @@
 "use client";
 
 import { User, Bot, Loader2, ChevronDown, ChevronUp } from "lucide-react";
-import { Conversation, RunStatus, Stage1Response, Stage2Review } from "@/types";
+import { Conversation, RunStatus, Stage1Response, Stage2Review, Turn } from "@/types";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
