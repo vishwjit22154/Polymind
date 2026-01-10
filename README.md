@@ -2,6 +2,14 @@
 
 Polymind is a powerful Multi-Stage Intelligence platform built with Next.js. It leverages the **GitHub Models API** to orchestrate a multi-stage reasoning pipeline where different AI models (OpenAI, Meta, Microsoft, AI21) collaborate, peer-review, and synthesize a single definitive answer.
 
+**🌐 Live Demo:** [https://polymind-roan.vercel.app](https://polymind-roan.vercel.app)
+
+## 📸 Screenshots
+
+| Dashboard Overview | Analytical Metrics |
+| :---: | :---: |
+| ![Dashboard Placeholder](https://placehold.co/600x400?text=Dashboard+Overview) | ![Metrics Placeholder](https://placehold.co/600x400?text=Analytical+Metrics) |
+
 ## 🚀 The 3-Stage Pipeline
 
 1.  **Stage 1: Multi-Perspective Generation**
