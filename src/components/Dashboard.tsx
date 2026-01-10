@@ -102,7 +102,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
                 {isRunning && currentRun.stage === "stage1" ? "Models are thinking..." : "Awaiting Model Inputs"}
               </div>
             ) : (
-              stage1Responses.map((resp, i) => (
+              stage1Responses.map((resp: Stage1Response, i: number) => (
                 <div key={i} className="bg-white/[0.02] border border-white/[0.03] rounded-2xl p-4 space-y-3 transition-all hover:bg-white/[0.04]">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -135,7 +135,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
                 {isRunning && currentRun.stage === "stage2" ? "Cross-analysis in progress..." : "Awaiting Synthesis Matrix"}
               </div>
             ) : (
-              stage2Reviews.map((review, idx) => (
+              stage2Reviews.map((review: Stage2Review, idx: number) => (
                 <div key={idx} className="space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em]">
@@ -148,7 +148,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
                       "{review.reviewJson.overall_commentary}"
                     </p>
                     <div className="grid grid-cols-1 gap-3">
-                              {Object.entries(review.reviewJson.scores).map(([label, scores]) => (
+                              {Object.entries(review.reviewJson.scores).map(([label, scores]: [string, any]) => (
                                 <div key={label} className="bg-black/40 rounded-xl p-3 border border-white/[0.03] space-y-2">
                                   <div className="flex items-center justify-between">
                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{label}</span>
