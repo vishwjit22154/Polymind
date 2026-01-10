@@ -1,51 +1,75 @@
-# Polymind
+# Polymind 🧠
 
-Polymind is a simple local web app that implements a "Council of LLMs" to provide high-quality, peer-reviewed, and synthesized answers to complex queries. It uses OpenRouter to communicate with multiple models in a 3-stage pipeline.
+Polymind is a powerful "Council of LLMs" dashboard built with Next.js. It leverages the **GitHub Models API** to orchestrate a multi-stage reasoning pipeline where different AI models (OpenAI, Meta, Microsoft, AI21) collaborate, peer-review, and synthesize a single definitive answer.
 
-## The Council Pipeline
+## 🚀 The 3-Stage Pipeline
 
-1.  **Stage 1: Generation** - Multiple models (e.g., Claude, Gemini, GPT) independently generate responses to your prompt.
-2.  **Stage 2: Peer Review** - Each model reviews and ranks the anonymized responses from other models. They provide scores (accuracy, insight, clarity) and critiques.
-3.  **Stage 3: Synthesis** - A "Chairman" model receives the original prompt, all Stage 1 responses, and all Stage 2 reviews to produce a final, definitive answer that cites the best ideas from the council.
+1.  **Stage 1: Multi-Perspective Generation**
+    *   The user's query is sent simultaneously to a diverse council of models.
+    *   Currently configured: **GPT-4o (OpenAI)**, **Llama 3.1 8B (Meta)**, **Phi-4 (Microsoft)**, and **Jamba 1.5 Large (AI21)**.
 
-## Tech Stack
+2.  **Stage 2: Peer Analysis & Ranking**
+    *   Models analyze each other's responses (anonymized internally for fairness).
+    *   They provide scores for **Accuracy, Insight, and Clarity** along with detailed critiques.
+    *   Visually represented with animated metric bars in the dashboard.
 
--   **Frontend:** Next.js (App Router), React, Tailwind CSS, Zustand, Lucide React
--   **Backend:** Next.js API Routes, Zod (validation), p-limit (concurrency), p-retry (exponential backoff)
--   **API:** OpenRouter
+3.  **Stage 3: Verified Synthesis**
+    *   A high-intelligence "Chairman" model (e.g., **GPT-5** or **GPT-4o**) receives the original prompt, all candidate responses, and all peer reviews.
+    *   It produces a final, high-quality markdown response resolving conflicts and highlighting the best ideas.
+    *   **Fallback Engine:** If the primary chairman hits a limit, the system automatically appoints the strongest working model from Stage 1 to finalize the synthesis.
 
-## Setup
+## 🛠 Tech Stack
 
-1.  **Clone the repository** (if you're using this from a repo) or ensure you are in the project directory.
-2.  **Install dependencies:**
-    ```bash
-    pnpm install
-    ```
-3.  **Configure environment variables:**
-    Create a `.env.local` file in the root directory:
-    ```bash
-    OPENROUTER_API_KEY=your_api_key_here
-    ```
-4.  **Run the development server:**
-    ```bash
-    pnpm dev
-    ```
-5.  Open [http://localhost:3000](http://localhost:3000) in your browser.
+-   **Frontend:** Next.js 15 (App Router), React 19, Tailwind CSS 4, Zustand (State Management)
+-   **Backend:** Next.js Server Actions & API Routes, Zod (Schema Validation)
+-   **Infrastructure:** GitHub Models (Azure AI Inference), p-limit (Concurrency Control), p-retry (Resilience)
 
-## Configuration
+## 📦 Setup & Installation
 
-You can edit the council members and the chairman model directly in the app via the **Settings** icon. 
-- Default models are configured in `src/config/council.config.ts`.
-- Conversations and configurations are stored in your browser's `localStorage`.
+### 1. Prerequisites
+Ensure you have [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/) installed.
 
-## Limitations
+### 2. Clone and Install
+```bash
+git clone https://github.com/vishwjit22154/Polymind.git
+cd Polymind
+pnpm install
+```
 
--   **Local Store:** Run statuses are kept in server memory and will reset if the server restarts.
--   **Browser Storage:** Conversations are stored in `localStorage`, so they are specific to your browser/device.
--   **Costs:** Running multiple models for every query can consume OpenRouter credits quickly.
+### 3. Configure Environment Variables
+Create a `.env.local` file in the root directory:
+```bash
+# Your GitHub Personal Access Token
+GITHUB_TOKEN=your_github_pat_here
+```
 
-## Safety & Robustness
+### 4. Run Development Server
+```bash
+pnpm dev
+```
+Open [http://localhost:3000](http://localhost:3000) to start.
 
--   **Timeouts & Retries:** Automatic retries with exponential backoff for OpenRouter API calls.
--   **Concurrency:** Limits the number of simultaneous API calls to stay within reasonable limits.
--   **JSON Validation:** Stage 2 reviews are validated with Zod, with a one-time "fix" attempt if a model produces invalid JSON.
+## 🔑 How to use GitHub Models
+
+To use this app, you need a GitHub Personal Access Token (PAT) with access to the **GitHub Models** marketplace.
+
+1.  Go to [GitHub Settings -> Personal Access Tokens (Fine-grained)](https://github.com/settings/personal-access-tokens/new).
+2.  Give your token a name and set the expiration.
+3.  Under **Permissions**, click **Account permissions**.
+4.  Find **Copilot** and select **Access: Read and write** (specifically the "Copilot Requests" permission if available, or broad Copilot access).
+5.  Alternatively, ensure your account has **Copilot Pro** or is part of a organization with **GitHub Models** enabled.
+6.  Copy the generated token and paste it into your `.env.local`.
+
+## ⚙️ Configuration
+
+-   **Settings Modal:** Click the gear icon in the app to change model IDs, temperatures, and token limits.
+-   **Persistence:** All chats and custom settings are saved in your browser's `localStorage`.
+-   **Default Config:** Found in `src/config/council.config.ts`.
+
+## ⚠️ Known Limits
+
+-   **Rate Limits:** High-end models like `o3` or `gpt-5` often have a "1-2 requests per minute" limit on GitHub. The app includes built-in staggering and retries to handle this.
+-   **Token Ceiling:** Some preview models have a 4,000 token limit. The app automatically compresses data sent to Stage 3 to ensure success.
+
+---
+Created by [vishwjit22154](https://github.com/vishwjit22154)
