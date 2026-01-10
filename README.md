@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Polymind
 
-## Getting Started
+Polymind is a simple local web app that implements a "Council of LLMs" to provide high-quality, peer-reviewed, and synthesized answers to complex queries. It uses OpenRouter to communicate with multiple models in a 3-stage pipeline.
 
-First, run the development server:
+## The Council Pipeline
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1.  **Stage 1: Generation** - Multiple models (e.g., Claude, Gemini, GPT) independently generate responses to your prompt.
+2.  **Stage 2: Peer Review** - Each model reviews and ranks the anonymized responses from other models. They provide scores (accuracy, insight, clarity) and critiques.
+3.  **Stage 3: Synthesis** - A "Chairman" model receives the original prompt, all Stage 1 responses, and all Stage 2 reviews to produce a final, definitive answer that cites the best ideas from the council.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+-   **Frontend:** Next.js (App Router), React, Tailwind CSS, Zustand, Lucide React
+-   **Backend:** Next.js API Routes, Zod (validation), p-limit (concurrency), p-retry (exponential backoff)
+-   **API:** OpenRouter
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup
 
-## Learn More
+1.  **Clone the repository** (if you're using this from a repo) or ensure you are in the project directory.
+2.  **Install dependencies:**
+    ```bash
+    pnpm install
+    ```
+3.  **Configure environment variables:**
+    Create a `.env.local` file in the root directory:
+    ```bash
+    OPENROUTER_API_KEY=your_api_key_here
+    ```
+4.  **Run the development server:**
+    ```bash
+    pnpm dev
+    ```
+5.  Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-To learn more about Next.js, take a look at the following resources:
+## Configuration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+You can edit the council members and the chairman model directly in the app via the **Settings** icon. 
+- Default models are configured in `src/config/council.config.ts`.
+- Conversations and configurations are stored in your browser's `localStorage`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Limitations
 
-## Deploy on Vercel
+-   **Local Store:** Run statuses are kept in server memory and will reset if the server restarts.
+-   **Browser Storage:** Conversations are stored in `localStorage`, so they are specific to your browser/device.
+-   **Costs:** Running multiple models for every query can consume OpenRouter credits quickly.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Safety & Robustness
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+-   **Timeouts & Retries:** Automatic retries with exponential backoff for OpenRouter API calls.
+-   **Concurrency:** Limits the number of simultaneous API calls to stay within reasonable limits.
+-   **JSON Validation:** Stage 2 reviews are validated with Zod, with a one-time "fix" attempt if a model produces invalid JSON.
