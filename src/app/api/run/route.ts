@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { runStage1, runStage2, runStage3 } from "@/lib/openrouter";
 import { updateRun, getRun } from "@/lib/runs";
 import { EngineConfig } from "@/config/engine.config";
+import { Turn } from "@/types";
 
 export async function POST(req: NextRequest) {
   try {

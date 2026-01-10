@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Conversation, RunStatus } from "@/types";
+import { Conversation, RunStatus, Turn } from "@/types";
 import { EngineConfig, DEFAULT_ENGINE_CONFIG } from "@/config/engine.config";
 
 interface PolymindState {
