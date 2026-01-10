@@ -53,7 +53,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
           {/* Previous Turns (Compact) */}
           {conversation && conversation.turns.length > 1 && (
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {conversation.turns.slice(0, -1).map((turn, i) => (
+              {conversation.turns.slice(0, -1).map((turn: Turn, i: number) => (
                 <div key={i} className="px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.05] text-[10px] text-gray-500 whitespace-nowrap">
                   {turn.userPrompt.substring(0, 30)}...
                 </div>
@@ -139,7 +139,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
                 <div key={idx} className="space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-                      Analysis by {stage1Responses.find(s => s.modelId === review.reviewerModelId)?.modelName || 'Expert'}
+                      Analysis by {stage1Responses.find((s: Stage1Response) => s.modelId === review.reviewerModelId)?.modelName || 'Expert'}
                     </span>
                     <div className="h-[1px] flex-1 bg-white/[0.05]" />
                   </div>
@@ -161,7 +161,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
                                       { name: "Accuracy", val: scores.accuracy, color: "bg-blue-500" },
                                       { name: "Insight", val: scores.insight, color: "bg-purple-500" },
                                       { name: "Clarity", val: scores.clarity, color: "bg-emerald-500" }
-                                    ].map((s) => (
+                                    ].map((s: { name: string, val: number, color: string }) => (
                                       <div key={s.name} className="flex items-center gap-3">
                                         <div className="w-12 text-[7px] uppercase tracking-tighter text-gray-600 font-bold">{s.name}</div>
                                         <div className="flex-1 h-[2px] bg-white/[0.03] rounded-full overflow-hidden">
