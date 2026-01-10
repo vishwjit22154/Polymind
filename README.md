@@ -8,7 +8,8 @@ Polymind is a powerful Multi-Stage Intelligence platform built with Next.js. It 
 
 | Dashboard Overview | Analytical Metrics |
 | :---: | :---: |
-| ![Dashboard Placeholder](https://placehold.co/600x400?text=Dashboard+Overview) | ![Metrics Placeholder](https://placehold.co/600x400?text=Analytical+Metrics) |
+| ![Dashboard Placeholder] <img width="1474" height="923" alt="Screenshot 2026-01-10 at 5 57 29 PM" src="https://github.com/user-attachments/assets/08cd76a3-5ddf-43da-a305-3bdee4c4ddf0" /> | 
+
 
 ## 🚀 The 3-Stage Pipeline
 
