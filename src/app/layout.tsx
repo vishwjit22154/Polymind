@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Polymind Council",
-  description: "Collaborative Intelligence Council",
+  title: "Polymind Intelligence",
+  description: "Collaborative Multi-Stage Intelligence Platform",
 };
 
 export default function RootLayout({

@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Conversation, RunStatus } from "@/types";
-import { CouncilConfig, DEFAULT_COUNCIL_CONFIG } from "@/config/council.config";
+import { EngineConfig, DEFAULT_ENGINE_CONFIG } from "@/config/engine.config";
 
 interface PolymindState {
   conversations: Conversation[];
   activeConversationId: string | null;
-  config: CouncilConfig;
+  config: EngineConfig;
   currentRun: RunStatus | null;
   
   // Actions
@@ -14,7 +14,7 @@ interface PolymindState {
   addTurnToConversation: (conversationId: string, turn: Turn) => void;
   deleteConversation: (id: string) => void;
   setActiveConversation: (id: string | null) => void;
-  updateConfig: (config: CouncilConfig) => void;
+  updateConfig: (config: EngineConfig) => void;
   setCurrentRun: (run: RunStatus | null) => void;
 }
 
@@ -23,7 +23,7 @@ export const usePolymindStore = create<PolymindState>()(
     (set) => ({
       conversations: [],
       activeConversationId: null,
-      config: DEFAULT_COUNCIL_CONFIG,
+      config: DEFAULT_ENGINE_CONFIG,
       currentRun: null,
 
       addConversation: (conv) => 

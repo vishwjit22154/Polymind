@@ -7,7 +7,7 @@ import {
   ReviewRanking, 
   Message 
 } from "@/types";
-import { CouncilConfig } from "@/config/council.config";
+import { EngineConfig } from "@/config/engine.config";
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const BASE_URL = "https://models.github.ai/inference";
@@ -36,13 +36,14 @@ function cleanJsonResponse(content: string) {
 async function callOpenRouter(
   model: string,
   messages: Message[],
-  config: Partial<CouncilConfig> = {},
+  config: Partial<EngineConfig> = {},
   jsonMode: boolean = false
 ) {
   if (!GITHUB_TOKEN) {
     throw new Error("GITHUB_TOKEN is not set. Please add it to your .env.local file.");
   }
 
+  // Detect reasoning models (gpt-5, o1, o3)
   const isReasoningModel = 
     model.includes("/o1") || 
     model.includes("/o3") || 
@@ -56,7 +57,7 @@ async function callOpenRouter(
       };
 
       if (isReasoningModel) {
-        body.max_completion_tokens = 2000;
+        body.max_completion_tokens = 2000; 
         body.reasoning_effort = "high";
       } else {
         body.temperature = config.temperature ?? 0.7;
@@ -88,18 +89,18 @@ async function callOpenRouter(
       return jsonMode ? cleanJsonResponse(content) : content;
     },
     { 
-      retries: 1, // Reduced retries for individual calls to speed up fallback
-      minTimeout: 2000,
+      retries: 1,
+      minTimeout: 5000,
     }
   );
 }
 
 export async function runStage1(
   prompt: string,
-  config: CouncilConfig,
+  config: EngineConfig,
   history: any[] = []
 ): Promise<Stage1Response[]> {
-  const limit = pLimit(1); 
+  const limit = pLimit(1);
   
   const historyMessages: Message[] = history.flatMap(h => [
     { role: "user", content: h.prompt },
@@ -140,7 +141,7 @@ export async function runStage1(
 export async function runStage2(
   prompt: string,
   stage1Responses: Stage1Response[],
-  config: CouncilConfig,
+  config: EngineConfig,
   history: any[] = []
 ): Promise<Stage2Review[]> {
   const limit = pLimit(1);
@@ -233,7 +234,7 @@ export async function runStage3(
   prompt: string,
   stage1Responses: Stage1Response[],
   stage2Reviews: Stage2Review[],
-  config: CouncilConfig,
+  config: EngineConfig,
   history: any[] = []
 ): Promise<string> {
   const responsesText = stage1Responses
@@ -256,29 +257,25 @@ export async function runStage3(
   const userContent = `${context}Latest Prompt: ${prompt}\n\nModel Responses (Summarized):\n${responsesText}\n\nReview Summaries:\n${reviewsText}`;
 
   try {
-    // Attempt with Primary Chairman
-    console.log(`[Chairman] Attempting synthesis with primary: ${config.chairmanModel}`);
-    return await callOpenRouter(config.chairmanModel, [
+    console.log(`[Synthesizer] Attempting synthesis with primary: ${config.synthesisModel}`);
+    return await callOpenRouter(config.synthesisModel, [
       { role: "system", content: systemPrompt },
       { role: "user", content: userContent }
     ], config);
   } catch (error) {
-    console.warn(`[Chairman Fallback] Primary ${config.chairmanModel} failed. Attempting fallback...`);
+    console.warn(`[Synthesizer Fallback] Primary ${config.synthesisModel} failed. Attempting fallback...`);
     
-    // FALLBACK LOGIC: Find any model from Stage 1 that worked
     const workingModels = stage1Responses.filter(r => !r.content.startsWith("ERROR:"));
     
     if (workingModels.length === 0) {
       throw new Error("No working models available to synthesize a response.");
     }
 
-    // Pick the most "premium" working model as the fallback chairman
-    // We'll prefer OpenAI models first, then Meta, then others
     const fallbackModel = workingModels.find(m => m.modelId.includes("openai")) || 
                           workingModels.find(m => m.modelId.includes("meta")) || 
                           workingModels[0];
 
-    console.log(`[Chairman Fallback] Appointed ${fallbackModel.modelName} as emergency Chairman.`);
+    console.log(`[Synthesizer Fallback] Appointed ${fallbackModel.modelName} as emergency synthesizer.`);
 
     const fallbackSystemPrompt = `${systemPrompt}\nNOTE: You are acting as the emergency synthesizer because the primary engine hit a limit. Be extra thorough.`;
 

@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { runStage1, runStage2, runStage3 } from "@/lib/openrouter";
 import { updateRun, getRun } from "@/lib/runs";
-import { CouncilConfig } from "@/config/council.config";
+import { EngineConfig } from "@/config/engine.config";
 
 export async function POST(req: NextRequest) {
   try {
     const { prompt, config, conversationId, history } = await req.json() as { 
       prompt: string, 
-      config: CouncilConfig, 
+      config: EngineConfig, 
       conversationId?: string,
       history?: any[]
     };
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
         // Stage 3
         console.log(`[Run ${runId}] Stage 3 starting...`);
         updateRun(runId, { stage: "stage3", progress: 90 });
-        const chairmanResponse = await runStage3(prompt, stage1Responses, stage2Reviews, config, history);
+        const synthesisResponse = await runStage3(prompt, stage1Responses, stage2Reviews, config, history);
         console.log(`[Run ${runId}] Stage 3 complete.`);
         
         const turn = {
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
           userPrompt: prompt,
           stage1Responses,
           stage2Reviews,
-          chairmanResponse,
+          synthesisResponse,
           createdAt: Date.now(),
         };
 

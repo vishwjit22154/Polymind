@@ -1,11 +1,11 @@
 # Polymind 🧠
 
-Polymind is a powerful "Council of LLMs" dashboard built with Next.js. It leverages the **GitHub Models API** to orchestrate a multi-stage reasoning pipeline where different AI models (OpenAI, Meta, Microsoft, AI21) collaborate, peer-review, and synthesize a single definitive answer.
+Polymind is a powerful Multi-Stage Intelligence platform built with Next.js. It leverages the **GitHub Models API** to orchestrate a multi-stage reasoning pipeline where different AI models (OpenAI, Meta, Microsoft, AI21) collaborate, peer-review, and synthesize a single definitive answer.
 
 ## 🚀 The 3-Stage Pipeline
 
 1.  **Stage 1: Multi-Perspective Generation**
-    *   The user's query is sent simultaneously to a diverse council of models.
+    *   The user's query is sent simultaneously to a diverse ensemble of models.
     *   Currently configured: **GPT-4o (OpenAI)**, **Llama 3.1 8B (Meta)**, **Phi-4 (Microsoft)**, and **Jamba 1.5 Large (AI21)**.
 
 2.  **Stage 2: Peer Analysis & Ranking**
@@ -14,9 +14,9 @@ Polymind is a powerful "Council of LLMs" dashboard built with Next.js. It levera
     *   Visually represented with animated metric bars in the dashboard.
 
 3.  **Stage 3: Verified Synthesis**
-    *   A high-intelligence "Chairman" model (e.g., **GPT-5** or **GPT-4o**) receives the original prompt, all candidate responses, and all peer reviews.
+    *   A high-intelligence "Synthesizer" model (e.g., **GPT-5** or **GPT-4o**) receives the original prompt, all candidate responses, and all peer reviews.
     *   It produces a final, high-quality markdown response resolving conflicts and highlighting the best ideas.
-    *   **Fallback Engine:** If the primary chairman hits a limit, the system automatically appoints the strongest working model from Stage 1 to finalize the synthesis.
+    *   **Fallback Engine:** If the primary synthesizer hits a limit, the system automatically appoints the strongest working model from Stage 1 to finalize the synthesis.
 
 ## 🛠 Tech Stack
 
@@ -64,7 +64,7 @@ To use this app, you need a GitHub Personal Access Token (PAT) with access to th
 
 -   **Settings Modal:** Click the gear icon in the app to change model IDs, temperatures, and token limits.
 -   **Persistence:** All chats and custom settings are saved in your browser's `localStorage`.
--   **Default Config:** Found in `src/config/council.config.ts`.
+-   **Default Config:** Found in `src/config/engine.config.ts`.
 
 ## ⚠️ Known Limits
 

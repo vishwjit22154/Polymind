@@ -43,7 +43,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
   const prompt = activeTurn?.userPrompt || "Preparing data...";
   const stage1Responses = activeTurn?.stage1Responses || [];
   const stage2Reviews = activeTurn?.stage2Reviews || [];
-  const chairmanResponse = isRunning ? "" : (activeTurn?.chairmanResponse || "");
+  const synthesisResponse = isRunning ? "" : (activeTurn?.synthesisResponse || "");
 
   return (
     <div className="flex-1 flex flex-col bg-black overflow-hidden">
@@ -147,7 +147,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
                     <p className="text-[12px] text-gray-500 italic leading-relaxed font-light">
                       "{review.reviewJson.overall_commentary}"
                     </p>
-                            <div className="grid grid-cols-1 gap-3">
+                    <div className="grid grid-cols-1 gap-3">
                               {Object.entries(review.reviewJson.scores).map(([label, scores]) => (
                                 <div key={label} className="bg-black/40 rounded-xl p-3 border border-white/[0.03] space-y-2">
                                   <div className="flex items-center justify-between">
@@ -209,7 +209,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
                   Reset & Try Again
                 </button>
               </div>
-            ) : !chairmanResponse ? (
+            ) : !synthesisResponse ? (
               <div className="h-full flex items-center justify-center text-[9px] text-gray-800 uppercase tracking-widest font-black italic">
                 {isRunning && currentRun.stage === "stage3" ? "Finalizing synthesis..." : "Awaiting Finalization"}
               </div>
@@ -217,7 +217,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
               <div className="prose prose-invert prose-base max-w-none">
                 <div className="text-white leading-relaxed font-light text-[17px] animate-in fade-in slide-in-from-bottom-4 duration-1000 markdown-content">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {chairmanResponse}
+                    {synthesisResponse}
                   </ReactMarkdown>
                 </div>
               </div>

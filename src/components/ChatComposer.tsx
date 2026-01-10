@@ -27,10 +27,10 @@ export function ChatComposer() {
           prompt: currentPrompt, 
           config,
           conversationId: activeConversationId,
-          history: activeConversation?.turns.map(t => ({
-            prompt: t.userPrompt,
-            response: t.chairmanResponse
-          }))
+                  history: activeConversation?.turns.map(t => ({
+                    prompt: t.userPrompt,
+                    response: t.synthesisResponse
+                  }))
         }),
       });
 

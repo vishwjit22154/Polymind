@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePolymindStore } from "@/lib/store";
 import { X, Settings, Plus, Trash2 } from "lucide-react";
-import { DEFAULT_COUNCIL_CONFIG } from "@/config/council.config";
+import { DEFAULT_ENGINE_CONFIG } from "@/config/engine.config";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -81,7 +81,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <input
                       value={model.id}
                       onChange={(e) => updateModel(idx, "id", e.target.value)}
-                      placeholder="OpenRouter ID"
+                      placeholder="GitHub Model ID"
                       className="w-full text-[10px] font-mono bg-white/[0.02] border border-white/[0.05] rounded-xl px-4 py-2.5 text-gray-400 placeholder:text-gray-700 focus:outline-none focus:border-accent/30 transition-all"
                     />
                   </div>
@@ -100,9 +100,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <section>
             <h3 className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] mb-6">Synthesis Engine</h3>
             <input
-              value={localConfig.chairmanModel}
-              onChange={(e) => setLocalConfig({ ...localConfig, chairmanModel: e.target.value })}
-              placeholder="Chairman Model ID"
+              value={localConfig.synthesisModel}
+              onChange={(e) => setLocalConfig({ ...localConfig, synthesisModel: e.target.value })}
+              placeholder="Synthesizer Model ID"
               className="w-full text-[10px] font-mono bg-white/[0.04] border border-white/[0.1] rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-accent/50 transition-all"
             />
           </section>
@@ -137,7 +137,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <button 
             onClick={() => {
               if (confirm("Reset configuration to defaults?")) {
-                setLocalConfig(DEFAULT_COUNCIL_CONFIG);
+                setLocalConfig(DEFAULT_ENGINE_CONFIG);
               }
             }}
             className="text-[10px] font-bold text-red-500/50 hover:text-red-500 uppercase tracking-widest transition-colors"

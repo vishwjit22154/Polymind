@@ -1,4 +1,4 @@
-import { CouncilConfig } from "@/config/council.config";
+import { EngineConfig } from "@/config/engine.config";
 
 export interface Message {
   role: "user" | "assistant" | "system";
@@ -34,7 +34,7 @@ export interface Turn {
   userPrompt: string;
   stage1Responses: Stage1Response[];
   stage2Reviews: Stage2Review[];
-  chairmanResponse: string;
+  synthesisResponse: string;
   createdAt: number;
 }
 
@@ -43,7 +43,7 @@ export interface Conversation {
   title: string;
   createdAt: number;
   turns: Turn[];
-  config: CouncilConfig;
+  config: EngineConfig;
 }
 
 export interface RunStatus {
