@@ -14,12 +14,12 @@ const BASE_URL = "https://models.github.ai/inference";
 
 const RankingSchema = z.object({
   ranking: z.array(z.string()),
-  scores: z.record(z.object({
+  scores: z.record(z.string(), z.object({
     accuracy: z.number().min(0).max(10).catch(5),
     insight: z.number().min(0).max(10).catch(5),
     clarity: z.number().min(0).max(10).catch(5),
   })),
-  notes: z.record(z.string()),
+  notes: z.record(z.string(), z.string()),
   overall_commentary: z.string(),
 });
 
