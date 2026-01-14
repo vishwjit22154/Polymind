@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { runStage1 } from "@/lib/openrouter";
+import { runStage1 } from "@/lib/github-models";
 import { EngineConfig } from "@/config/engine.config";
 
 export async function POST(req: NextRequest) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { runStage3 } from "@/lib/openrouter";
+import { runStage3 } from "@/lib/github-models";
 import { EngineConfig } from "@/config/engine.config";
 import { Stage1Response, Stage2Review } from "@/types";
 

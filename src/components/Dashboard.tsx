@@ -93,7 +93,17 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
           isRunning && currentRun.stage === "stage1" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] bg-accent/[0.02]" : "border-white/[0.05]"
         )}>
           <div className="p-5 border-b border-white/[0.05] bg-white/[0.02] flex items-center justify-between">
-            <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Stage 1: Primary Opinions</h3>
+            <div className="flex flex-col">
+              <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Stage 1: Primary Opinions</h3>
+              <div className="flex gap-1 mt-1.5">
+                {stage1Responses.map((r, i) => (
+                  <div key={i} className={cn(
+                    "h-[2px] w-4 rounded-full",
+                    r.content.startsWith("ERROR:") ? "bg-red-500" : "bg-accent"
+                  )} />
+                ))}
+              </div>
+            </div>
             <span className="text-[9px] text-gray-700 font-mono">{stage1Responses.length} Entries</span>
           </div>
           <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
@@ -106,14 +116,25 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
                 <div key={i} className="bg-white/[0.02] border border-white/[0.03] rounded-2xl p-4 space-y-3 transition-all hover:bg-white/[0.04]">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-accent opacity-50" />
+                      <div className={cn(
+                        "w-1.5 h-1.5 rounded-full bg-accent opacity-50",
+                        resp.content.startsWith("ERROR:") && "bg-red-500 opacity-100 animate-pulse"
+                      )} />
                       <span className="text-[10px] font-bold text-gray-200 uppercase tracking-wider">{resp.modelName}</span>
                     </div>
                     <span className="text-[8px] font-bold text-gray-700 uppercase bg-white/5 px-1.5 py-0.5 rounded">{resp.label}</span>
                   </div>
-                  <p className="text-[13px] text-gray-500 leading-relaxed font-light line-clamp-[8] hover:line-clamp-none transition-all cursor-default">
-                    {resp.content}
-                  </p>
+                  {resp.content.startsWith("ERROR:") ? (
+                    <div className="p-3 rounded-xl bg-red-500/5 border border-red-500/10">
+                      <p className="text-[11px] text-red-400 font-mono break-words leading-relaxed">
+                        {resp.content.replace("ERROR:", "").trim()}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-[13px] text-gray-500 leading-relaxed font-light line-clamp-[8] hover:line-clamp-none transition-all cursor-default">
+                      {resp.content}
+                    </p>
+                  )}
                 </div>
               ))
             )}
@@ -126,7 +147,14 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
           isRunning && currentRun.stage === "stage2" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] bg-accent/[0.02]" : "border-white/[0.05]"
         )}>
           <div className="p-5 border-b border-white/[0.05] bg-white/[0.02] flex items-center justify-between">
-            <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Stage 2: Peer Analysis</h3>
+            <div className="flex flex-col">
+              <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Stage 2: Peer Analysis</h3>
+              {isRunning && currentRun.stage === "stage2" && (
+                <div className="flex gap-1 mt-1.5 animate-pulse">
+                  {[1,2,3].map(i => <div key={i} className="h-[2px] w-4 rounded-full bg-accent/40" />)}
+                </div>
+              )}
+            </div>
             <span className="text-[9px] text-gray-700 font-mono">{stage2Reviews.length} Reviews</span>
           </div>
           <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
@@ -187,10 +215,17 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
         {/* Column 3: Stage 3 - Final Output */}
         <div className={cn(
           "flex-1 flex flex-col bg-black border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 min-h-[400px] xl:min-h-0",
-          isRunning && currentRun.stage === "stage3" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] bg-accent/[0.02]" : "border-white/[0.1]"
+          isRunning && currentRun.stage === "stage3" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] ring-1 ring-accent/20" : "border-white/[0.1]"
         )}>
           <div className="p-5 border-b border-white/[0.1] bg-white/[0.03] flex items-center justify-between">
-            <h3 className="text-[10px] font-bold text-accent uppercase tracking-[0.3em]">Stage 3: Verified Synthesis</h3>
+            <div className="flex flex-col">
+              <h3 className="text-[10px] font-bold text-accent uppercase tracking-[0.3em]">Stage 3: Verified Synthesis</h3>
+              {isRunning && currentRun.stage === "stage3" && (
+                <div className="h-[2px] w-full mt-1.5 bg-accent/20 overflow-hidden rounded-full">
+                  <div className="h-full bg-accent animate-[loading_2s_ease-in-out_infinite]" />
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-gradient-to-b from-black to-[#050505]">
             {isError ? (

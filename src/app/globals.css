@@ -52,6 +52,12 @@ body {
   background: rgba(0, 122, 255, 0.3);
 }
 
+@keyframes loading {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
 .markdown-content h1, .markdown-content h2, .markdown-content h3 {
   font-weight: 600;
   margin-top: 1.5em;

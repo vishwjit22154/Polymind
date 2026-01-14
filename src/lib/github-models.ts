@@ -33,7 +33,7 @@ function cleanJsonResponse(content: string) {
   return cleaned;
 }
 
-async function callOpenRouter(
+async function callGithubModels(
   model: string,
   messages: Message[],
   config: Partial<EngineConfig> = {},
@@ -43,11 +43,10 @@ async function callOpenRouter(
     throw new Error("GITHUB_TOKEN is not set. Please add it to your .env.local file.");
   }
 
-  // Detect reasoning models (gpt-5, o1, o3)
+  // Detect reasoning models
   const isReasoningModel = 
-    model.includes("/o1") || 
-    model.includes("/o3") || 
-    model.includes("/gpt-5");
+    model.includes("o1") || 
+    model.includes("o3");
 
   return pRetry(
     async () => {
@@ -57,11 +56,12 @@ async function callOpenRouter(
       };
 
       if (isReasoningModel) {
-        body.max_completion_tokens = 2000; 
-        body.reasoning_effort = "high";
+        // Reasoning models have different parameters on GitHub Models
+        body.max_completion_tokens = 4000; 
       } else {
         body.temperature = config.temperature ?? 0.7;
-        body.max_tokens = config.maxTokens ?? 2000;
+        body.max_tokens = config.maxTokens ?? 4000;
+        body.top_p = 0.95;
       }
 
       const response = await fetch(`${BASE_URL}/chat/completions`, {
@@ -78,19 +78,27 @@ async function callOpenRouter(
         console.error(`GitHub API Error (${model}):`, JSON.stringify(errorData, null, 2));
         
         if (response.status === 429) {
-          throw new Error(`RATE_LIMIT: ${errorData.error?.message || "Too many requests"}`);
+          throw new Error(`RATE_LIMIT: ${errorData.error?.message || "Too many requests. Please wait a moment."}`);
         }
         
         throw new Error(errorData.error?.message || `GitHub Models error: ${response.statusText}`);
       }
 
       const data = await response.json();
+      if (!data.choices?.[0]?.message?.content) {
+        throw new Error(`Invalid response from GitHub Models for ${model}`);
+      }
+      
       const content = data.choices[0].message.content;
       return jsonMode ? cleanJsonResponse(content) : content;
     },
     { 
-      retries: 1,
-      minTimeout: 5000,
+      retries: 3, // Increased retries
+      minTimeout: 2000,
+      maxTimeout: 10000,
+      onFailedAttempt: error => {
+        console.log(`Attempt ${error.attemptNumber} failed for ${model}. ${error.retriesLeft} retries left. Error: ${error.message}`);
+      }
     }
   );
 }
@@ -100,6 +108,7 @@ export async function runStage1(
   config: EngineConfig,
   history: any[] = []
 ): Promise<Stage1Response[]> {
+  // Use a strict limit to avoid hitting concurrent rate limits
   const limit = pLimit(1);
   
   const historyMessages: Message[] = history.flatMap(h => [
@@ -110,13 +119,17 @@ export async function runStage1(
   const tasks = config.models.map((model, index) =>
     limit(async () => {
       try {
-        if (index > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+        // Staggered start to help with rate limiting
+        if (index > 0) await new Promise(resolve => setTimeout(resolve, 3000));
 
         const messages: Message[] = [
           ...historyMessages,
+          { role: "system", content: "You are an expert analyst. Provide a detailed, insightful response to the user prompt." },
           { role: "user", content: prompt }
         ];
-        const content = await callOpenRouter(model.id, messages, config);
+        
+        const content = await callGithubModels(model.id, messages, config);
+        
         return {
           modelId: model.id,
           modelName: model.name,
@@ -150,32 +163,34 @@ export async function runStage2(
   const tasks = config.models.map((reviewerModel, index) =>
     limit(async () => {
       try {
-        if (index > 0) await new Promise(resolve => setTimeout(resolve, 3000));
+        if (index > 0) await new Promise(resolve => setTimeout(resolve, 4000));
 
         const otherResponses = stage1Responses.filter(r => 
           r.modelId !== reviewerModel.id && 
           !r.content.startsWith("ERROR:")
         );
+        
         if (otherResponses.length === 0) return null;
 
         const anonymizedMapping: Record<string, string> = {};
         otherResponses.forEach(r => anonymizedMapping[r.label] = r.modelName);
 
-        const responsesText = otherResponses.map(r => `### ${r.label}\n${r.content.substring(0, 1500)}`).join("\n\n");
+        const responsesText = otherResponses.map(r => `### ${r.label}\n${r.content}`).join("\n\n");
 
         const systemPrompt = `Review the provided responses (Model A, Model B, etc.) for the LATEST query. 
+Your goal is to be a critical peer reviewer.
 Provide a JSON object ONLY:
 {
   "ranking": ["Model A", "Model B"],
   "scores": { "Model A": { "accuracy": 1-10, "insight": 1-10, "clarity": 1-10 } },
-  "notes": { "Model A": "critique" },
-  "overall_commentary": "summary"
+  "notes": { "Model A": "Provide a concise critique of this model's response." },
+  "overall_commentary": "Summarize the strengths and weaknesses of the collective responses."
 }`;
 
         const context = history.length > 0 ? `Context of previous conversation:\n${historyText}\n\n` : "";
         const userContent = `${context}Latest Prompt: ${prompt}\n\nCandidate Responses for the Latest Prompt:\n${responsesText}`;
 
-        const content = await callOpenRouter(reviewerModel.id, [
+        const content = await callGithubModels(reviewerModel.id, [
           { role: "system", content: systemPrompt },
           { role: "user", content: userContent }
         ], config, true);
@@ -183,10 +198,12 @@ Provide a JSON object ONLY:
         const raw = JSON.parse(content);
         
         const getActualName = (key: string) => {
-          const cleanKey = key.toUpperCase().replace(/[^A-Z]/g, ""); 
+          const cleanKey = key.toUpperCase().replace(/[^A-Z0-9]/g, ""); 
           for (const label of Object.keys(anonymizedMapping)) {
-            if (label.toUpperCase().replace(/[^A-Z]/g, "") === cleanKey) return anonymizedMapping[label];
-            if (cleanKey.endsWith(label.replace("Model ", ""))) return anonymizedMapping[label];
+            const cleanLabel = label.toUpperCase().replace(/[^A-Z0-9]/g, "");
+            if (cleanLabel === cleanKey || cleanKey.includes(cleanLabel) || cleanLabel.includes(cleanKey)) {
+              return anonymizedMapping[label];
+            }
           }
           return null;
         };
@@ -239,47 +256,48 @@ export async function runStage3(
 ): Promise<string> {
   const responsesText = stage1Responses
     .filter(r => !r.content.startsWith("ERROR:"))
-    .map(r => `### ${r.modelName}\n${r.content.substring(0, 350)}... [Condensed for Synthesis]`)
+    .map(r => `### Response from ${r.modelName}\n${r.content}`)
     .join("\n\n");
 
   const reviewsText = stage2Reviews.map(rev => {
     const name = stage1Responses.find(s => s.modelId === rev.reviewerModelId)?.modelName || 'Expert';
-    return `Review by ${name}: Ranking: ${rev.reviewJson.ranking.join(" > ")}, Summary: ${rev.reviewJson.overall_commentary.substring(0, 150)}`;
+    return `Analysis by ${name}:\n- Ranking: ${rev.reviewJson.ranking.join(" > ")}\n- Key Insight: ${rev.reviewJson.overall_commentary}`;
   }).join("\n\n");
 
-  const historyText = history.map(h => `Q: ${h.prompt}\nA: ${h.response.substring(0, 100)}...`).join("\n\n");
+  const historyText = history.map(h => `Q: ${h.prompt}\nA: ${h.response}`).join("\n\n");
 
-  const systemPrompt = `You are an expert synthesizer. Produce a definitive final answer for the LATEST query.
-1. Use clear headings and bullet points.
-2. Resolve conflicts between models.`;
+  const systemPrompt = `You are an elite synthesizer. Your task is to produce the SINGLE BEST possible answer for the LATEST query by combining the best elements of all available model responses and considering the peer reviews.
 
-  const context = history.length > 0 ? `Brief History:\n${historyText}\n\n` : "";
-  const userContent = `${context}Latest Prompt: ${prompt}\n\nModel Responses (Summarized):\n${responsesText}\n\nReview Summaries:\n${reviewsText}`;
+1. Use professional markdown formatting.
+2. Be comprehensive but concise.
+3. Resolve any conflicting information.
+4. Provide a definitive, high-quality conclusion.`;
+
+  const context = history.length > 0 ? `Conversation History:\n${historyText}\n\n` : "";
+  const userContent = `${context}Latest Prompt: ${prompt}\n\nCandidate Model Responses:\n${responsesText}\n\nPeer Review Analysis:\n${reviewsText}\n\nProduce the final synthesis:`;
 
   try {
     console.log(`[Synthesizer] Attempting synthesis with primary: ${config.synthesisModel}`);
-    return await callOpenRouter(config.synthesisModel, [
+    return await callGithubModels(config.synthesisModel, [
       { role: "system", content: systemPrompt },
       { role: "user", content: userContent }
     ], config);
   } catch (error) {
-    console.warn(`[Synthesizer Fallback] Primary ${config.synthesisModel} failed. Attempting fallback...`);
+    console.warn(`[Synthesizer Fallback] Primary ${config.synthesisModel} failed. Error: ${error instanceof Error ? error.message : String(error)}`);
     
     const workingModels = stage1Responses.filter(r => !r.content.startsWith("ERROR:"));
     
     if (workingModels.length === 0) {
-      throw new Error("No working models available to synthesize a response.");
+      throw new Error("Critical Failure: All models failed to provide a response. Check your GITHUB_TOKEN and rate limits.");
     }
 
-    const fallbackModel = workingModels.find(m => m.modelId.includes("openai")) || 
-                          workingModels.find(m => m.modelId.includes("meta")) || 
-                          workingModels[0];
+    const fallbackModel = workingModels[0];
 
     console.log(`[Synthesizer Fallback] Appointed ${fallbackModel.modelName} as emergency synthesizer.`);
 
-    const fallbackSystemPrompt = `${systemPrompt}\nNOTE: You are acting as the emergency synthesizer because the primary engine hit a limit. Be extra thorough.`;
+    const fallbackSystemPrompt = `${systemPrompt}\nNOTE: You are the emergency synthesizer. Use the provided analyses to create the final response.`;
 
-    return await callOpenRouter(fallbackModel.modelId, [
+    return await callGithubModels(fallbackModel.modelId, [
       { role: "system", content: fallbackSystemPrompt },
       { role: "user", content: userContent }
     ], config);
