@@ -1,10 +1,14 @@
 "use client";
 
 import { usePolymindStore } from "@/lib/store";
-import { MessageSquare, Plus, Trash2 } from "lucide-react";
+import { MessageSquare, Plus, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export function Sidebar({ onClose }: SidebarProps) {
   const { 
     conversations, 
     activeConversationId, 
@@ -16,13 +20,28 @@ export function Sidebar() {
   const handleNewChat = () => {
     setActiveConversation(null);
     setCurrentRun(null);
+    if (onClose) onClose();
     // Force a small state reset for the UI
     window.dispatchEvent(new CustomEvent('new-chat'));
   };
 
   return (
     <div className="w-64 bg-black border-r border-white/[0.05] h-screen flex flex-col">
-      <div className="p-6">
+      <div className="p-6 flex items-center justify-between">
+        <div className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
+          Conversations
+        </div>
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="lg:hidden p-1 text-gray-500 hover:text-white"
+          >
+            <X size={18} />
+          </button>
+        )}
+      </div>
+
+      <div className="px-6 pb-4">
         <button
           onClick={handleNewChat}
           className="w-full flex items-center justify-center gap-2 bg-white/[0.03] border border-white/[0.05] py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-white/[0.06] transition-all text-gray-300 active:scale-[0.98]"
@@ -46,6 +65,7 @@ export function Sidebar() {
               onClick={() => {
                 setActiveConversation(conv.id);
                 setCurrentRun(null);
+                if (onClose) onClose();
               }}
             >
               <div className="flex items-center gap-3 truncate">

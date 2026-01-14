@@ -48,11 +48,11 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
   return (
     <div className="flex-1 flex flex-col bg-black overflow-hidden">
       {/* Top Section: Prompt & History */}
-      <div className="px-8 pt-8 pb-4 border-b border-white/[0.05]">
+      <div className="px-4 md:px-8 pt-4 md:pt-8 pb-4 border-b border-white/[0.05] shrink-0">
         <div className="max-w-6xl mx-auto space-y-4">
           {/* Previous Turns (Compact) */}
           {conversation && conversation.turns.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
               {conversation.turns.slice(0, -1).map((turn: Turn, i: number) => (
                 <div key={i} className="px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.05] text-[10px] text-gray-500 whitespace-nowrap">
                   {turn.userPrompt.substring(0, 30)}...
@@ -61,21 +61,21 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
             </div>
           )}
 
-          <div className="flex gap-6 items-start bg-white/[0.02] border border-white/[0.05] rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 md:p-6 shadow-2xl relative overflow-hidden">
             <div className="w-8 h-8 rounded-full bg-white/[0.05] border border-white/[0.1] flex items-center justify-center shrink-0 mt-1">
               <User size={14} className="text-gray-400" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] mb-2">Primary Objective</div>
-              <p className="text-gray-300 leading-relaxed font-light text-base truncate">{prompt}</p>
+              <p className="text-gray-300 leading-relaxed font-light text-sm md:text-base sm:truncate">{prompt}</p>
             </div>
             {isRunning && (
-               <div className="flex flex-col items-end gap-2 shrink-0">
+               <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-2 shrink-0 w-full sm:w-auto mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/[0.05]">
                  <div className="flex items-center gap-2 text-[10px] font-bold text-accent uppercase tracking-widest">
                    <Loader2 size={12} className="animate-spin" />
                    {currentRun.stage}
                  </div>
-                 <div className="w-24 h-[1px] bg-white/[0.05] rounded-full overflow-hidden">
+                 <div className="flex-1 sm:flex-none w-full sm:w-24 h-[1px] bg-white/[0.05] rounded-full overflow-hidden">
                    <div className="h-full bg-accent transition-all duration-700" style={{ width: `${currentRun.progress}%` }} />
                  </div>
                </div>
@@ -85,11 +85,11 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
       </div>
 
       {/* Bottom Section: Three Columns */}
-      <div className="flex-1 flex overflow-hidden p-8 gap-8 max-w-[1800px] mx-auto w-full">
+      <div className="flex-1 flex flex-col xl:flex-row overflow-y-auto xl:overflow-hidden p-4 md:p-8 gap-4 md:gap-8 max-w-[1800px] mx-auto w-full">
         
         {/* Column 1: Stage 1 - Opinions */}
         <div className={cn(
-          "flex-1 flex flex-col bg-white/[0.01] border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500",
+          "flex-1 flex flex-col bg-white/[0.01] border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 min-h-[400px] xl:min-h-0",
           isRunning && currentRun.stage === "stage1" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] bg-accent/[0.02]" : "border-white/[0.05]"
         )}>
           <div className="p-5 border-b border-white/[0.05] bg-white/[0.02] flex items-center justify-between">
@@ -122,7 +122,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
 
         {/* Column 2: Stage 2 - Analysis */}
         <div className={cn(
-          "flex-1 flex flex-col bg-white/[0.01] border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500",
+          "flex-1 flex flex-col bg-white/[0.01] border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 min-h-[400px] xl:min-h-0",
           isRunning && currentRun.stage === "stage2" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] bg-accent/[0.02]" : "border-white/[0.05]"
         )}>
           <div className="p-5 border-b border-white/[0.05] bg-white/[0.02] flex items-center justify-between">
@@ -186,7 +186,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
 
         {/* Column 3: Stage 3 - Final Output */}
         <div className={cn(
-          "flex-1 flex flex-col bg-black border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500",
+          "flex-1 flex flex-col bg-black border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 min-h-[400px] xl:min-h-0",
           isRunning && currentRun.stage === "stage3" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] bg-accent/[0.02]" : "border-white/[0.1]"
         )}>
           <div className="p-5 border-b border-white/[0.1] bg-white/[0.03] flex items-center justify-between">

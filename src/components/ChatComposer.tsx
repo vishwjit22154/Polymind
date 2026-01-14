@@ -85,13 +85,13 @@ export function ChatComposer() {
   };
 
   return (
-    <div className="p-6 bg-black">
+    <div className="p-4 md:p-6 bg-black">
       <form onSubmit={handleSubmit} className="max-w-2xl mx-auto relative group">
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Type a message..."
-          className="w-full bg-white/[0.03] border border-white/[0.05] rounded-2xl py-4 pl-5 pr-14 text-sm text-gray-200 placeholder:text-gray-600 focus:outline-none focus:border-white/[0.1] focus:bg-white/[0.05] transition-all resize-none min-h-[56px] font-light"
+          className="w-full bg-white/[0.03] border border-white/[0.05] rounded-2xl py-3 md:py-4 pl-4 md:pl-5 pr-12 md:pr-14 text-sm text-gray-200 placeholder:text-gray-600 focus:outline-none focus:border-white/[0.1] focus:bg-white/[0.05] transition-all resize-none min-h-[48px] md:min-h-[56px] font-light"
           rows={1}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -103,12 +103,12 @@ export function ChatComposer() {
         <button
           type="submit"
           disabled={!prompt.trim() || loading}
-          className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-accent disabled:opacity-0 transition-all"
+          className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-accent disabled:opacity-0 transition-all"
         >
           <Send size={18} strokeWidth={1.5} />
         </button>
       </form>
-      <p className="text-[9px] text-center text-gray-700 mt-4 uppercase tracking-[0.2em] font-medium">
+      <p className="text-[8px] md:text-[9px] text-center text-gray-700 mt-3 md:mt-4 uppercase tracking-[0.2em] font-medium">
         Peer-Reviewed Perspective Engine
       </p>
     </div>
