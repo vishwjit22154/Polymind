@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { runStage1, runStage2, runStage3 } from "@/lib/github-models";
-import { updateRun, getRun } from "@/lib/runs";
+import { updateRun } from "@/lib/runs";
 import { EngineConfig } from "@/config/engine.config";
-import { Turn } from "@/types";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,38 +19,41 @@ export async function POST(req: NextRequest) {
 
     const runId = uuidv4();
     
-    // Initialize run
+    // Initialize run in the store immediately
     updateRun(runId, {
       id: runId,
       stage: "stage1",
       progress: 0,
     });
 
-    console.log(`Run ${runId} initialized.`);
-
-    // Start processing in the background
-    (async () => {
-      console.log(`Starting run ${runId} for prompt: ${prompt}`);
+    // Use Next.js 'after' to ensure the process continues even after the response is sent
+    // This is critical for Vercel deployment
+    after(async () => {
+      console.log(`[Run ${runId}] Starting synthesis for: ${prompt}`);
       try {
         // Stage 1
-        console.log(`[Run ${runId}] Stage 1 starting...`);
         updateRun(runId, { stage: "stage1", progress: 10 });
         const stage1Responses = await runStage1(prompt, config, history);
-        console.log(`[Run ${runId}] Stage 1 complete. Responses: ${stage1Responses.length}`);
-        updateRun(runId, { progress: 40, result: { turns: [{ userPrompt: prompt, stage1Responses }] } as any });
+        updateRun(runId, { 
+          progress: 40, 
+          result: { 
+            turns: [{ userPrompt: prompt, stage1Responses }] 
+          } as any 
+        });
 
         // Stage 2
-        console.log(`[Run ${runId}] Stage 2 starting...`);
         updateRun(runId, { stage: "stage2", progress: 50 });
         const stage2Reviews = await runStage2(prompt, stage1Responses, config, history);
-        console.log(`[Run ${runId}] Stage 2 complete. Reviews: ${stage2Reviews.length}`);
-        updateRun(runId, { progress: 80, result: { turns: [{ userPrompt: prompt, stage1Responses, stage2Reviews }] } as any });
+        updateRun(runId, { 
+          progress: 80, 
+          result: { 
+            turns: [{ userPrompt: prompt, stage1Responses, stage2Reviews }] 
+          } as any 
+        });
 
         // Stage 3
-        console.log(`[Run ${runId}] Stage 3 starting...`);
         updateRun(runId, { stage: "stage3", progress: 90 });
         const synthesisResponse = await runStage3(prompt, stage1Responses, stage2Reviews, config, history);
-        console.log(`[Run ${runId}] Stage 3 complete.`);
         
         const turn = {
           id: uuidv4(),
@@ -73,17 +75,15 @@ export async function POST(req: NextRequest) {
             createdAt: Date.now(),
           } as any,
         });
+        console.log(`[Run ${runId}] Synthesis completed successfully.`);
       } catch (error: any) {
-        console.error(`[Run ${runId}] Failed:`, error);
+        console.error(`[Run ${runId}] Background Process Failed:`, error);
         updateRun(runId, {
           stage: "error",
-          error: error.message || "An unexpected error occurred during the run.",
+          error: error.message || "An unexpected error occurred during the background synthesis process.",
         });
       }
-    })();
-
-    // Wait briefly to ensure the run is in the store before responding
-    await new Promise(resolve => setTimeout(resolve, 100));
+    });
 
     return NextResponse.json({ runId });
   } catch (error: any) {

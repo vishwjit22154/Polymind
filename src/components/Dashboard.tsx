@@ -34,16 +34,30 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
   }
 
   const isRunning = currentRun && currentRun.stage !== "completed";
+  const [activeTab, setActiveTab] = useState<number>(2); // Default to Stage 3 on mobile
   
   // Support multi-turn: show latest turn in columns
   const latestTurn = conversation?.turns[conversation.turns.length - 1];
-  const activeTurn = isRunning ? (currentRun?.result as any)?.turns?.[0] : latestTurn;
+  
+  // Determine active turn data
+  let activeTurn: Turn | undefined;
+  if (isRunning) {
+    const result = currentRun?.result as any;
+    if (result?.turn) {
+      activeTurn = result.turn;
+    } else if (result?.turns?.[0]) {
+      activeTurn = result.turns[0];
+    }
+  } else {
+    activeTurn = latestTurn;
+  }
+
   const isError = currentRun?.stage === "error";
   
   const prompt = activeTurn?.userPrompt || "Preparing data...";
   const stage1Responses = activeTurn?.stage1Responses || [];
   const stage2Reviews = activeTurn?.stage2Reviews || [];
-  const synthesisResponse = isRunning ? "" : (activeTurn?.synthesisResponse || "");
+  const synthesisResponse = activeTurn?.synthesisResponse || "";
 
   return (
     <div className="flex-1 flex flex-col bg-black overflow-hidden">
@@ -84,13 +98,33 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
         </div>
       </div>
 
-      {/* Bottom Section: Three Columns */}
+      {/* Mobile Tabs */}
+      <div className="xl:hidden flex border-b border-white/[0.05] bg-white/[0.01]">
+        {["Stage 1", "Stage 2", "Stage 3"].map((label, idx) => (
+          <button
+            key={idx}
+            onClick={() => setActiveTab(idx)}
+            className={cn(
+              "flex-1 py-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-all relative",
+              activeTab === idx ? "text-accent" : "text-gray-600"
+            )}
+          >
+            {label}
+            {activeTab === idx && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Bottom Section: Three Columns / Tabs */}
       <div className="flex-1 flex flex-col xl:flex-row overflow-y-auto xl:overflow-hidden p-4 md:p-8 gap-4 md:gap-8 max-w-[1800px] mx-auto w-full">
         
         {/* Column 1: Stage 1 - Opinions */}
         <div className={cn(
           "flex-1 flex flex-col bg-white/[0.01] border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 min-h-[400px] xl:min-h-0",
-          isRunning && currentRun.stage === "stage1" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] bg-accent/[0.02]" : "border-white/[0.05]"
+          isRunning && currentRun.stage === "stage1" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] bg-accent/[0.02]" : "border-white/[0.05]",
+          activeTab !== 0 && "hidden xl:flex"
         )}>
           <div className="p-5 border-b border-white/[0.05] bg-white/[0.02] flex items-center justify-between">
             <div className="flex flex-col">
@@ -144,7 +178,8 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
         {/* Column 2: Stage 2 - Analysis */}
         <div className={cn(
           "flex-1 flex flex-col bg-white/[0.01] border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 min-h-[400px] xl:min-h-0",
-          isRunning && currentRun.stage === "stage2" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] bg-accent/[0.02]" : "border-white/[0.05]"
+          isRunning && currentRun.stage === "stage2" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] bg-accent/[0.02]" : "border-white/[0.05]",
+          activeTab !== 1 && "hidden xl:flex"
         )}>
           <div className="p-5 border-b border-white/[0.05] bg-white/[0.02] flex items-center justify-between">
             <div className="flex flex-col">
@@ -215,7 +250,8 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
         {/* Column 3: Stage 3 - Final Output */}
         <div className={cn(
           "flex-1 flex flex-col bg-black border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 min-h-[400px] xl:min-h-0",
-          isRunning && currentRun.stage === "stage3" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] ring-1 ring-accent/20" : "border-white/[0.1]"
+          isRunning && currentRun.stage === "stage3" ? "border-accent shadow-[0_0_20px_rgba(0,122,255,0.15)] ring-1 ring-accent/20" : "border-white/[0.1]",
+          activeTab !== 2 && "hidden xl:flex"
         )}>
           <div className="p-5 border-b border-white/[0.1] bg-white/[0.03] flex items-center justify-between">
             <div className="flex flex-col">
@@ -227,7 +263,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
               )}
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-gradient-to-b from-black to-[#050505]">
+          <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar bg-gradient-to-b from-black to-[#050505]">
             {isError ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6">
                 <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
@@ -250,7 +286,7 @@ export function Dashboard({ conversation, currentRun }: DashboardProps) {
               </div>
             ) : (
               <div className="prose prose-invert prose-base max-w-none">
-                <div className="text-white leading-relaxed font-light text-[17px] animate-in fade-in slide-in-from-bottom-4 duration-1000 markdown-content">
+                <div className="text-white leading-relaxed font-light text-[15px] md:text-[17px] animate-in fade-in slide-in-from-bottom-4 duration-1000 markdown-content">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {synthesisResponse}
                   </ReactMarkdown>
